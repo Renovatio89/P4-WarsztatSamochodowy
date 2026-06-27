@@ -1,0 +1,17 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Local DB files
+*.mdf
+*.ldf
+
+# Logs
+*.log
