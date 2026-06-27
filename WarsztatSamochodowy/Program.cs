@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.IO;
+using System.Linq;
 using Microsoft.Data.SqlClient;
 
 namespace WarsztatSamochodowy
@@ -26,13 +27,19 @@ namespace WarsztatSamochodowy
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("=== Obsługa warsztatu samochodowego ===");
+                Console.WriteLine("============================================");
+                Console.WriteLine("    Obsługa warsztatu samochodowego v1.0    ");
+                Console.WriteLine("============================================\n");
                 Console.WriteLine("1. Pokaż pojazdy");
                 Console.WriteLine("2. Pokaż zlecenia");
                 Console.WriteLine("3. Dodaj nowe zlecenie");
                 Console.WriteLine("4. Zamknij zlecenie");
                 Console.WriteLine("5. Pokaż podsumowanie finansowe");
-                Console.WriteLine("0. Wyjście");
+                Console.WriteLine("6. Pokaż klientów");
+                Console.WriteLine("7. Dodaj klienta");
+                Console.WriteLine("8. Pokaż usługi");
+                Console.WriteLine("9. Pokaż części");
+                Console.WriteLine("0. Wyjście\n");
                 Console.Write("Wybierz opcję: ");
 
                 var choice = Console.ReadLine()?.Trim();
@@ -55,6 +62,18 @@ namespace WarsztatSamochodowy
                     case "5":
                         ShowFinance(workshopDb);
                         break;
+                    case "6":
+                        ShowClients(workshopDb);
+                        break;
+                    case "7":
+                        AddClient(workshopDb);
+                        break;
+                    case "8":
+                        ShowServices(workshopDb);
+                        break;
+                    case "9":
+                        ShowParts(workshopDb);
+                        break;
                     case "0":
                         return;
                     default:
@@ -73,8 +92,7 @@ namespace WarsztatSamochodowy
 FROM T_Pojazdy v
 LEFT JOIN SL_Podmioty p ON v.ID_Podmiotu = p.ID_Podmiotu
 ORDER BY v.Nr_Rejestracyjny";
-            var table = db.Query(sql);
-            PrintTable(table);
+            PrintTable(db.Query(sql));
         }
 
         private static void ShowOrders(WorkshopDatabase db)
@@ -82,8 +100,7 @@ ORDER BY v.Nr_Rejestracyjny";
             var sql = @"SELECT z.ID_Zlecenia, z.VIN, z.Status, z.Forma_Platnosci, z.Data_Przyjecia, z.Planowana_Data_Zakonczenia, z.Data_Zakonczenia
 FROM T_Zlecenia z
 ORDER BY z.ID_Zlecenia";
-            var table = db.Query(sql);
-            PrintTable(table);
+            PrintTable(db.Query(sql));
         }
 
         private static void CreateOrder(WorkshopDatabase db)
@@ -121,7 +138,7 @@ ORDER BY z.ID_Zlecenia";
                 days = parsedDays;
             }
 
-            var sql = @"INSERT INTO T_Zlecenia (VIN, Planowana_Data_Zakonczenia, Forma_Platnosci, Status)
+            const string sql = @"INSERT INTO T_Zlecenia (VIN, Planowana_Data_Zakonczenia, Forma_Platnosci, Status)
 VALUES (@vin, DATEADD(day, @days, GETDATE()), @payment, 'Oczekujące')";
             var parameters = new[]
             {
@@ -159,8 +176,69 @@ VALUES (@vin, DATEADD(day, @days, GETDATE()), @payment, 'Oczekujące')";
         private static void ShowFinance(WorkshopDatabase db)
         {
             var sql = @"SELECT ID_Zlecenia, VIN, Status, Suma_Rbg, Suma_Czesci, Suma_Uslug FROM v_FinanseZlecenia ORDER BY ID_Zlecenia";
-            var table = db.Query(sql);
-            PrintTable(table);
+            PrintTable(db.Query(sql));
+        }
+
+        private static void ShowClients(WorkshopDatabase db)
+        {
+            var sql = @"SELECT ID_Podmiotu, Typ_Podmiotu, Nazwa, Telefon, NIP FROM SL_Podmioty ORDER BY Typ_Podmiotu, Nazwa";
+            PrintTable(db.Query(sql));
+        }
+
+        private static void AddClient(WorkshopDatabase db)
+        {
+            Console.Write("Typ (Klient / Dostawca): ");
+            var typ = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(typ) || (typ != "Klient" && typ != "Dostawca"))
+            {
+                Console.WriteLine("Podaj poprawny typ: Klient lub Dostawca.");
+                return;
+            }
+
+            Console.Write("Nazwa klienta / dostawcy: ");
+            var name = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                Console.WriteLine("Nazwa nie może być pusta.");
+                return;
+            }
+
+            Console.Write("Telefon: ");
+            var phone = Console.ReadLine()?.Trim() ?? string.Empty;
+            Console.Write("NIP: ");
+            var nip = Console.ReadLine()?.Trim() ?? string.Empty;
+
+            const string sql = @"INSERT INTO SL_Podmioty (Typ_Podmiotu, Nazwa, Telefon, NIP)
+VALUES (@typ, @nazwa, @telefon, @nip)";
+            var parameters = new[]
+            {
+                new SqlParameter("@typ", typ),
+                new SqlParameter("@nazwa", name),
+                new SqlParameter("@telefon", phone),
+                new SqlParameter("@nip", nip)
+            };
+
+            try
+            {
+                db.ExecuteNonQuery(sql, parameters);
+                Console.WriteLine("Klient/dostawca został dodany.");
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("Błąd dodawania klienta/dostawcy: " + ex.Message);
+            }
+        }
+
+        private static void ShowServices(WorkshopDatabase db)
+        {
+            var sql = @"SELECT ID_Uslugi, Nazwa_Uslugi, Norma_Czasowa_Min, Cena_Uslugi FROM SL_Uslugi ORDER BY Nazwa_Uslugi";
+            PrintTable(db.Query(sql));
+        }
+
+        private static void ShowParts(WorkshopDatabase db)
+        {
+            var sql = @"SELECT ID_Czesci, Nazwa_Czesci, Cena_Sprzedazy, Stan_Aktualny, Stan_Minimalny FROM SL_Czesci ORDER BY Nazwa_Czesci";
+            PrintTable(db.Query(sql));
         }
 
         private static void PrintTable(DataTable table)
