@@ -2,6 +2,10 @@
 
 Prosty projekt konsolowy w C#, wykorzystujący bazę danych SQL z katalogu `Database/init_database.sql`.
 
+Projekt pokazuje podstawową obsługę warsztatu samochodowego: rejestrację zleceń, wyświetlanie pojazdów, klientów, usług oraz podsumowanie finansowe. Został przygotowany jako prosta aplikacja na zaliczenie, działająca w Visual Studio Code z LocalDB.
+
+Aplikacja wykorzystuje ADO.NET do połączenia z bazą danych, automatycznie tworzy bazę danych w LocalDB, wczytuje strukturę z gotowego skryptu SQL oraz wstawia przykładowe dane testowe. Interfejs konsolowy jest prosty i czytelny — wystarczy wybrać numer opcji z menu.
+
 ## Co zawiera projekt
 
 - `Database/init_database.sql` — struktura bazy danych, tabele, widok, procedury i triggery.
@@ -37,7 +41,6 @@ Aplikacja automatycznie:
 - wczytuje schemat z `Database/init_database.sql`,
 - wstawia przykładowe dane,
 - pozwala przeglądać pojazdy, klientów, usługi, części, zlecenia i podsumowanie finansowe.
-
 
 ## Wymagania
 
