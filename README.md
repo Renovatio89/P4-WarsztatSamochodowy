@@ -38,45 +38,11 @@ Aplikacja automatycznie:
 - wstawia przykładowe dane,
 - pozwala przeglądać pojazdy, klientów, usługi, części, zlecenia i podsumowanie finansowe.
 
-## Jak wypchnąć na GitHub
-
-1. Utwórz nowe repozytorium na GitHubie o nazwie `P4-WarsztatSamochodowy` w swoim koncie `Renovatio89`.
-2. W folderze projektu `P4-WarsztatSamochodowy` wykonaj te polecenia:
-
-```powershell
-git init
-git add .
-git commit -m "Initial workshop application"
-git branch -M main
-git remote add origin https://github.com/Renovatio89/P4-WarsztatSamochodowy.git
-git push -u origin main
-```
-
-3. Jeśli repozytorium już istnieje i masz ustawiony inny remote, użyj:
-
-```powershell
-git remote remove origin
-git remote add origin https://github.com/Renovatio89/P4-WarsztatSamochodowy.git
-git push -u origin main
-```
 
 ## Wymagania
 
 - .NET SDK 10
 - SQL Server LocalDB (`(localdb)\\MSSQLLocalDB`)
-
-## GitHub i wersjonowanie
-
-Jeśli chcesz wypchnąć projekt do GitHuba:
-
-```powershell
-git init
-git add .
-git commit -m "Initial workshop application"
-git branch -M main
-git remote add origin https://github.com/<twoje-konto>/<repo>.git
-git push -u origin main
-```
 
 ## Co robi aplikacja
 
