@@ -11,7 +11,7 @@ namespace WarsztatSamochodowy
         private static void Main()
         {
             var databaseName = "WarsztatSamochodowyDB";
-            var scriptPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "Database", "init_database.sql"));
+            var scriptPath = FindSqlScriptPath();
             var workshopDb = new WorkshopDatabase(databaseName);
 
             try
@@ -39,6 +39,7 @@ namespace WarsztatSamochodowy
                 Console.WriteLine("7. Dodaj klienta");
                 Console.WriteLine("8. Pokaż usługi");
                 Console.WriteLine("9. Pokaż części");
+                Console.WriteLine("10. Dodaj pojazd");
                 Console.WriteLine("0. Wyjście\n");
                 Console.Write("Wybierz opcję: ");
 
@@ -74,6 +75,9 @@ namespace WarsztatSamochodowy
                     case "9":
                         ShowParts(workshopDb);
                         break;
+                    case "10":
+                        AddVehicle(workshopDb);
+                        break;
                     case "0":
                         return;
                     default:
@@ -84,6 +88,29 @@ namespace WarsztatSamochodowy
                 Console.WriteLine("\nNaciśnij Enter, aby kontynuować...");
                 Console.ReadLine();
             }
+        }
+
+        private static string FindSqlScriptPath()
+        {
+            var directory = AppContext.BaseDirectory;
+            while (!string.IsNullOrEmpty(directory))
+            {
+                var scriptPath = Path.Combine(directory, "Database", "init_database.sql");
+                if (File.Exists(scriptPath))
+                {
+                    return Path.GetFullPath(scriptPath);
+                }
+
+                var parent = Path.GetDirectoryName(directory);
+                if (string.IsNullOrEmpty(parent) || parent == directory)
+                {
+                    break;
+                }
+
+                directory = parent;
+            }
+
+            throw new FileNotFoundException("SQL script not found in any parent directory.");
         }
 
         private static void ShowVehicles(WorkshopDatabase db)
@@ -226,6 +253,64 @@ VALUES (@typ, @nazwa, @telefon, @nip)";
             catch (SqlException ex)
             {
                 Console.WriteLine("Błąd dodawania klienta/dostawcy: " + ex.Message);
+            }
+        }
+
+        private static void AddVehicle(WorkshopDatabase db)
+        {
+            Console.Write("VIN: ");
+            var vin = Console.ReadLine()?.Trim();
+            if (string.IsNullOrWhiteSpace(vin) || vin.Length > 17)
+            {
+                Console.WriteLine("Podaj poprawny VIN (maksymalnie 17 znaków).");
+                return;
+            }
+
+            if (db.ValueExists("SELECT COUNT(*) FROM T_Pojazdy WHERE VIN = @vin", new SqlParameter("@vin", vin)))
+            {
+                Console.WriteLine("Pojazd o podanym VIN już istnieje.");
+                return;
+            }
+
+            Console.WriteLine("Dostępni klienci:");
+            PrintTable(db.Query("SELECT ID_Podmiotu, Nazwa, Telefon, NIP FROM SL_Podmioty WHERE Typ_Podmiotu = 'Klient' ORDER BY Nazwa"));
+            Console.Write("Podaj ID klienta: ");
+            var ownerInput = Console.ReadLine()?.Trim();
+            if (!int.TryParse(ownerInput, out var ownerId) || ownerId <= 0)
+            {
+                Console.WriteLine("Nieprawidłowe ID klienta.");
+                return;
+            }
+
+            if (!db.ValueExists("SELECT COUNT(*) FROM SL_Podmioty WHERE ID_Podmiotu = @id AND Typ_Podmiotu = 'Klient'", new SqlParameter("@id", ownerId)))
+            {
+                Console.WriteLine("Nie znaleziono klienta o podanym ID.");
+                return;
+            }
+
+            Console.Write("Numer rejestracyjny: ");
+            var registration = Console.ReadLine()?.Trim();
+            Console.Write("Typ pojazdu: ");
+            var type = Console.ReadLine()?.Trim();
+
+            const string sql = @"INSERT INTO T_Pojazdy (VIN, ID_Podmiotu, Nr_Rejestracyjny, Typ_Pojazdu)
+VALUES (@vin, @ownerId, @reg, @type)";
+            var parameters = new[]
+            {
+                new SqlParameter("@vin", vin),
+                new SqlParameter("@ownerId", ownerId),
+                new SqlParameter("@reg", registration ?? string.Empty),
+                new SqlParameter("@type", type ?? string.Empty)
+            };
+
+            try
+            {
+                db.ExecuteNonQuery(sql, parameters);
+                Console.WriteLine("Pojazd został dodany do bazy.");
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("Błąd dodawania pojazdu: " + ex.Message);
             }
         }
 
