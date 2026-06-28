@@ -1,19 +1,19 @@
 # Obsługa warsztatu samochodowego
 
-Prosty projekt konsolowy w C#, wykorzystujący bazę danych SQL z katalogu `Database/init_database.sql`.
+Projekt desktopowy w C# z interfejsem okienkowym WPF, wykorzystujący bazę danych SQL z katalogu `Database/init_database.sql`.
 
-Projekt pokazuje podstawową obsługę warsztatu samochodowego: rejestrację zleceń, wyświetlanie pojazdów, klientów, usług oraz podsumowanie finansowe. Został przygotowany jako prosta aplikacja na zaliczenie, działająca w Visual Studio Code z LocalDB.
+Aplikacja wspiera podstawową obsługę warsztatu samochodowego: zarządzanie pojazdami, zleceniami, klientami, usługami, częściami oraz podsumowaniem finansowym. Została przygotowana jako prosta aplikacja na zaliczenie, działająca w Visual Studio Code i Visual Studio z LocalDB.
 
-Aplikacja wykorzystuje ADO.NET do połączenia z bazą danych, automatycznie tworzy bazę danych w LocalDB, wczytuje strukturę z gotowego skryptu SQL oraz wstawia przykładowe dane testowe. Interfejs konsolowy jest prosty i czytelny — wystarczy wybrać numer opcji z menu.
+Aplikacja wykorzystuje ADO.NET do połączenia z bazą danych, automatycznie tworzy bazę danych w LocalDB, wczytuje strukturę z gotowego skryptu SQL oraz wstawia przykładowe dane testowe. Interfejs został zmieniony z konsolowego na klasyczne okno Windows z przyciskami i tabelą danych.
 
 ## Co zawiera projekt
 
 - `Database/init_database.sql` — struktura bazy danych, tabele, widok, procedury i triggery.
-- `WarsztatSamochodowy/` — aplikacja konsolowa .NET 10, która łączy się z LocalDB.
+- `WarsztatSamochodowy/` — aplikacja WPF .NET 10, która łączy się z LocalDB.
 
 ## Jak uruchomić
 
-1. Otwórz folder `P4-WarsztatSamochodowy` w Visual Studio Code.
+1. Otwórz folder `P4-WarsztatSamochodowy` w Visual Studio Code lub Visual Studio.
 2. Otwórz terminal w VS Code.
 3. Przejdź do katalogu projektu:
 
@@ -33,7 +33,7 @@ dotnet restore
 dotnet run
 ```
 
-6. W menu wybierz jedną z opcji, np. `1` aby wyświetlić pojazdy.
+6. W głównym oknie kliknij odpowiedni przycisk, np. `Pokaż pojazdy`, aby wyświetlić dane.
 
 Aplikacja automatycznie:
 
@@ -46,6 +46,7 @@ Aplikacja automatycznie:
 
 - .NET SDK 10
 - SQL Server LocalDB (`(localdb)\\MSSQLLocalDB`)
+- Windows (ze względu na WPF)
 
 ## Co robi aplikacja
 
@@ -57,4 +58,4 @@ Aplikacja automatycznie:
 - wyświetla listę usług i części,
 - pokazuje podsumowanie z widoku finansowego.
 
-> Używaj tego projektu jako prostego przykładu na zaliczenie. Nie dodawaj zaawansowanych funkcji, jeżeli chcesz mieć działającą wersję na czas.
+> Ten projekt może być używany jako prosty przykład aplikacji desktopowej z bazą danych na zaliczenie lub ćwiczenie.
