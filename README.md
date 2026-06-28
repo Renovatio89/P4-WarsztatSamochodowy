@@ -4,7 +4,7 @@ Projekt desktopowy w C# z interfejsem okienkowym WPF, wykorzystujący bazę dany
 
 Aplikacja wspiera podstawową obsługę warsztatu samochodowego: zarządzanie pojazdami, zleceniami, klientami, usługami, częściami oraz podsumowaniem finansowym. Została przygotowana jako prosta aplikacja na zaliczenie, działająca w Visual Studio Code i Visual Studio z LocalDB.
 
-Aplikacja wykorzystuje ADO.NET do połączenia z bazą danych, automatycznie tworzy bazę danych w LocalDB, wczytuje strukturę z gotowego skryptu SQL oraz wstawia przykładowe dane testowe. Interfejs został zmieniony z konsolowego na klasyczne okno Windows z przyciskami i tabelą danych.
+Aplikacja wykorzystuje ADO.NET do połączenia z bazą danych, automatycznie tworzy bazę danych w LocalDB, wczytuje strukturę z gotowego skryptu SQL oraz wstawia wprowadzone dane. Interfejs to klasyczne okno Windows z przyciskami i tabelą danych.
 
 ## Co zawiera projekt
 
@@ -57,5 +57,3 @@ Aplikacja automatycznie:
 - pozwala zamykać zlecenia i oznaczać je jako gotowe,
 - pokazuje podsumowanie finansowe z widoku finansowego,
 - waliduje dane wprowadzane przez użytkownika przed zapisaniem do bazy.
-
-> Ten projekt może być używany jako prosty przykład aplikacji desktopowej z bazą danych na zaliczenie lub ćwiczenie.

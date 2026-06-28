@@ -32,6 +32,7 @@ namespace WarsztatSamochodowy
         private void ShowVehicles_Click(object sender, RoutedEventArgs e) => ShowVehicles();
         private void ShowOrders_Click(object sender, RoutedEventArgs e) => ShowOrders();
         private void CreateOrder_Click(object sender, RoutedEventArgs e) => CreateOrder();
+        private void EditOrder_Click(object sender, RoutedEventArgs e) => EditOrder();
         private void CloseOrder_Click(object sender, RoutedEventArgs e) => CloseOrder();
         private void ShowFinance_Click(object sender, RoutedEventArgs e) => ShowFinance();
         private void ShowClients_Click(object sender, RoutedEventArgs e) => ShowClients();
@@ -80,6 +81,7 @@ ORDER BY z.ID_Zlecenia";
             var vinBox = new System.Windows.Controls.TextBox();
             var paymentBox = new System.Windows.Controls.TextBox();
             var daysBox = new System.Windows.Controls.TextBox { Text = "3" };
+            var plannedEndDateBox = new System.Windows.Controls.TextBox();
             var submit = new System.Windows.Controls.Button { Content = "Dodaj", Margin = new Thickness(0, 12, 0, 0) };
 
             panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "VIN pojazdu:" });
@@ -88,6 +90,8 @@ ORDER BY z.ID_Zlecenia";
             panel.Children.Add(paymentBox);
             panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "Liczba dni:" });
             panel.Children.Add(daysBox);
+            panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "Planowana data zakończenia (yyyy-MM-dd HH:mm):" });
+            panel.Children.Add(plannedEndDateBox);
             panel.Children.Add(submit);
             dialog.Content = panel;
 
@@ -96,6 +100,7 @@ ORDER BY z.ID_Zlecenia";
                 var vin = vinBox.Text.Trim();
                 var payment = paymentBox.Text.Trim();
                 var daysText = daysBox.Text.Trim();
+                var plannedEndDateText = plannedEndDateBox.Text.Trim();
 
                 if (!ValidationHelper.TryValidateOrder(vin, payment, daysText, out var error))
                 {
@@ -110,18 +115,133 @@ ORDER BY z.ID_Zlecenia";
                 }
 
                 int days = int.Parse(daysText);
+                DateTime? plannedEndDate = null;
+                if (!string.IsNullOrWhiteSpace(plannedEndDateText))
+                {
+                    if (!DateTime.TryParse(plannedEndDateText, out var parsedPlannedEndDate))
+                    {
+                        MessageBox.Show("Podaj poprawną planowaną datę zakończenia.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    plannedEndDate = parsedPlannedEndDate;
+                }
 
                 const string sql = @"INSERT INTO T_Zlecenia (VIN, Planowana_Data_Zakonczenia, Forma_Platnosci, Status)
-VALUES (@vin, DATEADD(day, @days, GETDATE()), @payment, 'Oczekujące')";
+VALUES (@vin, @plannedEndDate, @payment, 'Oczekujące')";
                 var parameters = new[]
                 {
                     new SqlParameter("@vin", vin),
-                    new SqlParameter("@days", days),
+                    new SqlParameter("@plannedEndDate", plannedEndDate ?? DateTime.Now.AddDays(days)),
                     new SqlParameter("@payment", payment)
                 };
 
                 _db.ExecuteNonQuery(sql, parameters);
                 MessageBox.Show("Zlecenie zostało dodane.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
+                dialog.Close();
+                ShowOrders();
+            };
+
+            dialog.ShowDialog();
+        }
+
+        private void EditOrder()
+        {
+            var table = _db.Query(@"SELECT ID_Zlecenia, VIN, Status, Forma_Platnosci, Data_Przyjecia, Planowana_Data_Zakonczenia, Data_Zakonczenia FROM T_Zlecenia ORDER BY ID_Zlecenia");
+            if (table.Rows.Count == 0)
+            {
+                MessageBox.Show("Brak zleceń do edycji.", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var dialog = new Window
+            {
+                Title = "Edytuj zlecenie",
+                Width = 360,
+                Height = 260,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this
+            };
+
+            var panel = new System.Windows.Controls.StackPanel { Margin = new Thickness(12) };
+            var idBox = new System.Windows.Controls.TextBox();
+            var plannedEndDateBox = new System.Windows.Controls.TextBox();
+            var endDateBox = new System.Windows.Controls.TextBox();
+            var submit = new System.Windows.Controls.Button { Content = "Zapisz", Margin = new Thickness(0, 12, 0, 0) };
+
+            panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "ID zlecenia:" });
+            panel.Children.Add(idBox);
+            panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "Planowana data zakończenia (yyyy-MM-dd HH:mm):" });
+            panel.Children.Add(plannedEndDateBox);
+            panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "Data zakończenia (yyyy-MM-dd HH:mm):" });
+            panel.Children.Add(endDateBox);
+            panel.Children.Add(submit);
+            dialog.Content = panel;
+
+            submit.Click += (_, _) =>
+            {
+                if (!int.TryParse(idBox.Text.Trim(), out var orderId))
+                {
+                    MessageBox.Show("Nieprawidłowe ID zlecenia.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (!_db.ValueExists("SELECT COUNT(*) FROM T_Zlecenia WHERE ID_Zlecenia = @id", new SqlParameter("@id", orderId)))
+                {
+                    MessageBox.Show("Zlecenie o podanym ID nie istnieje.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                DateTime? plannedEndDate = null;
+                if (!string.IsNullOrWhiteSpace(plannedEndDateBox.Text.Trim()))
+                {
+                    if (!DateTime.TryParse(plannedEndDateBox.Text.Trim(), out var parsedPlannedEndDate))
+                    {
+                        MessageBox.Show("Podaj poprawną planowaną datę zakończenia.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    plannedEndDate = parsedPlannedEndDate;
+                }
+
+                DateTime? endDate = null;
+                if (!string.IsNullOrWhiteSpace(endDateBox.Text.Trim()))
+                {
+                    if (!DateTime.TryParse(endDateBox.Text.Trim(), out var parsedEndDate))
+                    {
+                        MessageBox.Show("Podaj poprawną datę zakończenia.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    endDate = parsedEndDate;
+                }
+
+                var updateSql = "UPDATE T_Zlecenia SET ";
+                var parameters = new System.Collections.Generic.List<SqlParameter>();
+
+                if (plannedEndDate.HasValue)
+                {
+                    updateSql += "Planowana_Data_Zakonczenia = @plannedEndDate, ";
+                    parameters.Add(new SqlParameter("@plannedEndDate", plannedEndDate.Value));
+                }
+
+                if (endDate.HasValue)
+                {
+                    updateSql += "Data_Zakonczenia = @endDate, ";
+                    parameters.Add(new SqlParameter("@endDate", endDate.Value));
+                }
+
+                if (parameters.Count == 0)
+                {
+                    MessageBox.Show("Wprowadź przynajmniej jedną datę do aktualizacji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                updateSql = updateSql.TrimEnd(',', ' ') + " WHERE ID_Zlecenia = @id";
+                parameters.Add(new SqlParameter("@id", orderId));
+
+                _db.ExecuteNonQuery(updateSql, parameters.ToArray());
+                MessageBox.Show("Dane zlecenia zostały zaktualizowane.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
                 dialog.Close();
                 ShowOrders();
             };
@@ -284,14 +404,24 @@ VALUES (@typ, @nazwa, @telefon, @nip)";
 
             var panel = new System.Windows.Controls.StackPanel { Margin = new Thickness(12) };
             var vinBox = new System.Windows.Controls.TextBox();
-            var ownerBox = new System.Windows.Controls.TextBox();
+            var ownerBox = new System.Windows.Controls.ComboBox();
             var registrationBox = new System.Windows.Controls.TextBox();
             var typeBox = new System.Windows.Controls.TextBox();
             var submit = new System.Windows.Controls.Button { Content = "Dodaj", Margin = new Thickness(0, 12, 0, 0) };
 
+            var clients = _db.Query("SELECT ID_Podmiotu, Nazwa FROM SL_Podmioty WHERE Typ_Podmiotu = 'Klient' ORDER BY Nazwa");
+            foreach (DataRow row in clients.Rows)
+            {
+                ownerBox.Items.Add(new System.Windows.Controls.ComboBoxItem
+                {
+                    Content = $"{row["ID_Podmiotu"]} - {row["Nazwa"]}",
+                    Tag = row["ID_Podmiotu"]
+                });
+            }
+
             panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "VIN:" });
             panel.Children.Add(vinBox);
-            panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "ID klienta:" });
+            panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "Właściciel:" });
             panel.Children.Add(ownerBox);
             panel.Children.Add(new System.Windows.Controls.TextBlock { Text = "Numer rejestracyjny:" });
             panel.Children.Add(registrationBox);
@@ -303,7 +433,8 @@ VALUES (@typ, @nazwa, @telefon, @nip)";
             submit.Click += (_, _) =>
             {
                 var vin = vinBox.Text.Trim();
-                var ownerIdText = ownerBox.Text.Trim();
+                var selectedOwner = ownerBox.SelectedItem as System.Windows.Controls.ComboBoxItem;
+                var ownerIdText = selectedOwner?.Tag?.ToString();
                 var registration = registrationBox.Text.Trim();
                 var type = typeBox.Text.Trim();
 
@@ -315,7 +446,7 @@ VALUES (@typ, @nazwa, @telefon, @nip)";
 
                 if (!_db.ValueExists("SELECT COUNT(*) FROM SL_Podmioty WHERE ID_Podmiotu = @id AND Typ_Podmiotu = 'Klient'", new SqlParameter("@id", ownerIdText)))
                 {
-                    MessageBox.Show("Nie znaleziono klienta o podanym ID.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Wybierz właściciela z listy.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
