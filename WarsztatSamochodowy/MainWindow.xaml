@@ -13,16 +13,16 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0"
-                Margin="0,0,0,12">
+                    Margin="0,0,0,12">
             <TextBlock Text="Warsztat samochodowy"
-                    FontSize="24"
-                    FontWeight="Bold"/>
+                       FontSize="24"
+                       FontWeight="Bold"/>
             <TextBlock Text="Zarządzanie pojazdami, zleceniami, klientami i finansami"
-                    Margin="0,4,0,0"/>
+                       Margin="0,4,0,0"/>
         </StackPanel>
 
         <WrapPanel Grid.Row="1"
-                Margin="0,0,0,12">
+                   Margin="0,0,0,12">
             <Button Content="Pokaż pojazdy"
                     Margin="0,0,8,8"
                     Padding="12,6"
@@ -63,6 +63,10 @@
                     Margin="0,0,8,8"
                     Padding="12,6"
                     Click="AddVehicle_Click"/>
+            <Button Content="Wyjście"
+                    Margin="0,0,8,8"
+                    Padding="12,6"
+                    Click="Exit_Click"/>
         </WrapPanel>
 
         <Border Grid.Row="2"
@@ -72,13 +76,13 @@
                 Padding="12">
             <DockPanel>
                 <TextBlock x:Name="StatusText"
-                        DockPanel.Dock="Top"
-                        Margin="0,0,0,8"
-                        TextWrapping="Wrap"/>
+                           DockPanel.Dock="Top"
+                           Margin="0,0,0,8"
+                           TextWrapping="Wrap"/>
                 <DataGrid x:Name="DataGridResults"
-                        AutoGenerateColumns="True"
-                        IsReadOnly="True"
-                        CanUserAddRows="False"/>
+                          AutoGenerateColumns="True"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"/>
             </DockPanel>
         </Border>
     </Grid>

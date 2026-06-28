@@ -39,6 +39,7 @@ namespace WarsztatSamochodowy
         private void ShowServices_Click(object sender, RoutedEventArgs e) => ShowServices();
         private void ShowParts_Click(object sender, RoutedEventArgs e) => ShowParts();
         private void AddVehicle_Click(object sender, RoutedEventArgs e) => AddVehicle();
+        private void Exit_Click(object sender, RoutedEventArgs e) => Close();
 
         private void ShowVehicles()
         {
@@ -93,9 +94,12 @@ ORDER BY z.ID_Zlecenia";
             submit.Click += (_, _) =>
             {
                 var vin = vinBox.Text.Trim();
-                if (string.IsNullOrWhiteSpace(vin))
+                var payment = paymentBox.Text.Trim();
+                var daysText = daysBox.Text.Trim();
+
+                if (!ValidationHelper.TryValidateOrder(vin, payment, daysText, out var error))
                 {
-                    MessageBox.Show("VIN nie może być pusty.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(error, "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -105,11 +109,7 @@ ORDER BY z.ID_Zlecenia";
                     return;
                 }
 
-                int days = 3;
-                if (!int.TryParse(daysBox.Text.Trim(), out days) || days <= 0)
-                {
-                    days = 3;
-                }
+                int days = int.Parse(daysText);
 
                 const string sql = @"INSERT INTO T_Zlecenia (VIN, Planowana_Data_Zakonczenia, Forma_Platnosci, Status)
 VALUES (@vin, DATEADD(day, @days, GETDATE()), @payment, 'Oczekujące')";
@@ -117,7 +117,7 @@ VALUES (@vin, DATEADD(day, @days, GETDATE()), @payment, 'Oczekujące')";
                 {
                     new SqlParameter("@vin", vin),
                     new SqlParameter("@days", days),
-                    new SqlParameter("@payment", paymentBox.Text.Trim())
+                    new SqlParameter("@payment", payment)
                 };
 
                 _db.ExecuteNonQuery(sql, parameters);
@@ -223,9 +223,12 @@ VALUES (@vin, DATEADD(day, @days, GETDATE()), @payment, 'Oczekujące')";
             {
                 var typ = typeBox.SelectedItem?.ToString();
                 var name = nameBox.Text.Trim();
-                if (string.IsNullOrWhiteSpace(typ) || string.IsNullOrWhiteSpace(name))
+                var phone = phoneBox.Text.Trim();
+                var nip = nipBox.Text.Trim();
+
+                if (!ValidationHelper.TryValidateClient(typ, name, phone, nip, out var error))
                 {
-                    MessageBox.Show("Uzupełnij typ i nazwę.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(error, "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -235,8 +238,8 @@ VALUES (@typ, @nazwa, @telefon, @nip)";
                 {
                     new SqlParameter("@typ", typ),
                     new SqlParameter("@nazwa", name),
-                    new SqlParameter("@telefon", phoneBox.Text.Trim()),
-                    new SqlParameter("@nip", nipBox.Text.Trim())
+                    new SqlParameter("@telefon", phone),
+                    new SqlParameter("@nip", nip)
                 };
 
                 try
@@ -299,13 +302,17 @@ VALUES (@typ, @nazwa, @telefon, @nip)";
             submit.Click += (_, _) =>
             {
                 var vin = vinBox.Text.Trim();
-                if (string.IsNullOrWhiteSpace(vin) || vin.Length > 17)
+                var ownerIdText = ownerBox.Text.Trim();
+                var registration = registrationBox.Text.Trim();
+                var type = typeBox.Text.Trim();
+
+                if (!ValidationHelper.TryValidateVehicle(vin, ownerIdText, registration, type, out var error))
                 {
-                    MessageBox.Show("Podaj poprawny VIN (maksymalnie 17 znaków).", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(error, "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                if (!_db.ValueExists("SELECT COUNT(*) FROM SL_Podmioty WHERE ID_Podmiotu = @id AND Typ_Podmiotu = 'Klient'", new SqlParameter("@id", ownerBox.Text.Trim())))
+                if (!_db.ValueExists("SELECT COUNT(*) FROM SL_Podmioty WHERE ID_Podmiotu = @id AND Typ_Podmiotu = 'Klient'", new SqlParameter("@id", ownerIdText)))
                 {
                     MessageBox.Show("Nie znaleziono klienta o podanym ID.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
@@ -316,9 +323,9 @@ VALUES (@vin, @ownerId, @reg, @type)";
                 var parameters = new[]
                 {
                     new SqlParameter("@vin", vin),
-                    new SqlParameter("@ownerId", int.Parse(ownerBox.Text.Trim())),
-                    new SqlParameter("@reg", registrationBox.Text.Trim()),
-                    new SqlParameter("@type", typeBox.Text.Trim())
+                    new SqlParameter("@ownerId", int.Parse(ownerIdText)),
+                    new SqlParameter("@reg", registration),
+                    new SqlParameter("@type", type)
                 };
 
                 try
