@@ -31,7 +31,7 @@ CREATE TABLE SL_Podmioty (
     Typ_Podmiotu VARCHAR(20) NOT NULL,
     Nazwa VARCHAR(200) NOT NULL,
     Telefon VARCHAR(20),
-    NIP VARCHAR(15) UNIQUE
+    NIP VARCHAR(15)
 );
 
 CREATE TABLE SL_Pracownicy (

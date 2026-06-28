@@ -50,12 +50,12 @@ Aplikacja automatycznie:
 
 ## Co robi aplikacja
 
-- inicjalizuje bazę danych i strukturę SQL,
-- dodaje dane testowe,
-- umożliwia tworzenie nowych zleceń,
-- pozwala zamykać zlecenia,
-- pokazuje klientów i pozwala dodawać nowych klientów,
-- wyświetla listę usług i części,
-- pokazuje podsumowanie z widoku finansowego.
+- uruchamia okno aplikacji WPF z przyciskami do nawigacji po danych,
+- inicjalizuje bazę danych i strukturę SQL przy pierwszym uruchomieniu,
+- wyświetla listę pojazdów, zleceń, klientów, usług i części,
+- umożliwia dodawanie nowych zleceń, klientów i pojazdów,
+- pozwala zamykać zlecenia i oznaczać je jako gotowe,
+- pokazuje podsumowanie finansowe z widoku finansowego,
+- waliduje dane wprowadzane przez użytkownika przed zapisaniem do bazy.
 
 > Ten projekt może być używany jako prosty przykład aplikacji desktopowej z bazą danych na zaliczenie lub ćwiczenie.

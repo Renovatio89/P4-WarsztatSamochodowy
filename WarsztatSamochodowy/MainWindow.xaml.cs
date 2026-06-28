@@ -234,12 +234,13 @@ VALUES (@vin, DATEADD(day, @days, GETDATE()), @payment, 'Oczekujące')";
 
                 const string sql = @"INSERT INTO SL_Podmioty (Typ_Podmiotu, Nazwa, Telefon, NIP)
 VALUES (@typ, @nazwa, @telefon, @nip)";
+                var nipValue = string.IsNullOrWhiteSpace(nip) ? (object)DBNull.Value : nip;
                 var parameters = new[]
                 {
                     new SqlParameter("@typ", typ),
                     new SqlParameter("@nazwa", name),
                     new SqlParameter("@telefon", phone),
-                    new SqlParameter("@nip", nip)
+                    new SqlParameter("@nip", nipValue)
                 };
 
                 try
